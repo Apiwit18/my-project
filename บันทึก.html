@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Diary Pro</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f6f9;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 15px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    color:#28a745;
+}
+
+.form{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+input,select{
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+}
+
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#28a745;
+    color:white;
+}
+
+button:hover{
+    background:#218838;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:#28a745;
+    color:white;
+}
+
+.delete-btn{
+    background:#dc3545;
+}
+
+.delete-btn:hover{
+    background:#b21f2d;
+}
+
+.summary{
+    margin-top:20px;
+}
+
+.progress{
+    width:100%;
+    background:#ddd;
+    height:30px;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    height:100%;
+    width:0%;
+    background:#28a745;
+    color:white;
+    text-align:center;
+    line-height:30px;
+    transition:0.3s;
+}
+
+.card{
+    background:#f8f9fa;
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>🍽️ Food Diary Pro</h1>
+
+<div class="form">
+<input type="text" id="food" placeholder="ชื่ออาหาร">
+
+<input type="number" id="calories" placeholder="แคลอรี่">
+
+<select id="meal">
+<option>มื้อเช้า</option>
+<option>มื้อกลางวัน</option>
+<option>มื้อเย็น</option>
+<option>ของว่าง</option>
+</select>
+
+<button onclick="addFood()">เพิ่ม</button>
+
+</div>
+
+<div class="card">
+<h3>🎯 เป้าหมายแคลอรี่ต่อวัน</h3>
+<input type="number" id="goal" placeholder="เช่น 2000">
+<button onclick="saveGoal()">บันทึกเป้าหมาย</button>
+</div>
+
+<div class="summary">
+<h3>แคลอรี่รวมวันนี้: <span id="total">0</span> kcal</h3>
+
+<div class="progress">
+<div class="progress-bar" id="bar">0%</div>
+</div>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>มื้อ</th>
+<th>อาหาร</th>
+<th>แคลอรี่</th>
+<th>ลบ</th>
+</tr>
+</thead>
+<tbody id="foodTable"></tbody>
+</table>
+
+</div>
+
+<script>
+
+let foods = JSON.parse(localStorage.getItem("foods")) || [];
+let goal = localStorage.getItem("goal") || 2000;
+
+document.getElementById("goal").value = goal;
+
+function saveGoal(){
+    goal = document.getElementById("goal").value;
+    localStorage.setItem("goal",goal);
+    updateDisplay();
+}
+
+function addFood(){
+
+    const food = document.getElementById("food").value;
+    const calories = document.getElementById("calories").value;
+    const meal = document.getElementById("meal").value;
+
+    if(food==="" || calories===""){
+        alert("กรุณากรอกข้อมูล");
+        return;
+    }
+
+    foods.push({
+        food,
+        calories:Number(calories),
+        meal
+    });
+
+    localStorage.setItem("foods",JSON.stringify(foods));
+
+    document.getElementById("food").value="";
+    document.getElementById("calories").value="";
+
+    updateDisplay();
+}
+
+function deleteFood(index){
+
+    foods.splice(index,1);
+
+    localStorage.setItem("foods",JSON.stringify(foods));
+
+    updateDisplay();
+}
+
+function updateDisplay(){
+
+    const table = document.getElementById("foodTable");
+
+    table.innerHTML="";
+
+    let total = 0;
+
+    foods.forEach((item,index)=>{
+
+        total += item.calories;
+
+        table.innerHTML += `
+        <tr>
+            <td>${item.meal}</td>
+            <td>${item.food}</td>
+            <td>${item.calories}</td>
+            <td>
+            <button
+            class="delete-btn"
+            onclick="deleteFood(${index})">
+            ลบ
+            </button>
+            </td>
+        </tr>`;
+    });
+
+    document.getElementById("total").innerText = total;
+
+    let percent = (total/goal)*100;
+
+    if(percent>100){
+        percent=100;
+    }
+
+    const bar = document.getElementById("bar");
+
+    bar.style.width = percent+"%";
+    bar.innerText = Math.round(percent)+"%";
+}
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
